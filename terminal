@@ -1,0 +1,48 @@
+mkdir web-testing-project
+cd web-testing-project
+npm init -y
+npm install cypress xlsx playwright axios cheerio 
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/tu-usuario/tu-repositorio.git
+git push -u origin main 
+
+# Para ejecutar todos los tests en modo headless (sin interfaz gráfica)
+npm run test:login
+
+# Para el test de login exitoso
+npm run test:login-success
+
+# Para el test de usuario inválido
+npm run test:login-invalid-user
+
+# Para el test de contraseña inválida
+npm run test:login-invalid-password
+
+# O para abrir Cypress en modo interactivo
+npm run cy:open 
+
+# Navegar al directorio del proyecto
+cd web-testing-project
+
+# Limpia la instalación de node_modules
+rm -rf node_modules
+rm package-lock.json
+
+# Reinstala las dependencias
+npm install
+
+# Instala Cypress nuevamente
+npm install cypress --save-dev
+
+# Verifica la instalación
+npx cypress verify
+
+# Inicia Cypress
+npx cypress open
+
+mkdir -p cypress/support
+touch cypress/support/e2e.js
+touch cypress/support/commands.js
+mkdir -p cypress/e2e 
