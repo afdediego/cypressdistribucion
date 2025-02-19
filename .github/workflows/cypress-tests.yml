@@ -18,25 +18,66 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Run Cypress Tests
+      - name: Run Invalid Password Test
+        id: invalid-password
+        continue-on-error: true
         uses: cypress-io/github-action@v6
         with:
           browser: chrome
-          spec: cypress/e2e/logindistribucion/*.cy.js
+          spec: cypress/e2e/logindistribucion/login-invalid-password.cy.js
           config-file: cypress.config.js
-        env:
-          CYPRESS_BASE_URL: 'https://pre-logistics.recordgo.cloud'
+
+      - name: Run Invalid User Test
+        id: invalid-user
+        continue-on-error: true
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          spec: cypress/e2e/logindistribucion/login-invalid-user.cy.js
+          config-file: cypress.config.js
+
+      - name: Run Success Test
+        id: success
+        continue-on-error: true
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          spec: cypress/e2e/logindistribucion/login-success.cy.js
+          config-file: cypress.config.js
+
+      - name: Report Test Results
+        if: always()
+        run: |
+          echo "Test Results Summary:"
+          echo "===================="
+          echo "Login Invalid Password Test: ${{ steps.invalid-password.outcome }}"
+          echo "Login Invalid User Test: ${{ steps.invalid-user.outcome }}"
+          echo "Login Success Test: ${{ steps.success.outcome }}"
+          echo "===================="
           
       - name: Upload Screenshots
-        uses: actions/upload-artifact@v4  # Actualizado a v4
-        if: failure()
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: cypress-screenshots
           path: cypress/screenshots
           
       - name: Upload Videos
-        uses: actions/upload-artifact@v4  # Actualizado a v4
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: cypress-videos
-          path: cypress/videos 
+          path: cypress/videos
+
+      - name: Set final status
+        if: always()
+        run: |
+          if [[ "${{ steps.invalid-password.outcome }}" == "failure" || 
+                "${{ steps.invalid-user.outcome }}" == "failure" || 
+                "${{ steps.success.outcome }}" == "failure" ]]; then
+            echo "Some tests failed"
+            exit 1
+          else
+            echo "All tests passed"
+            exit 0
+          fi 
