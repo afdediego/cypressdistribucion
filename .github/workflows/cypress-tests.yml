@@ -18,31 +18,13 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Run Invalid Password Test
-        id: invalid-password
+      - name: Run All Tests
+        id: cypress-tests
         continue-on-error: true
         uses: cypress-io/github-action@v6
         with:
           browser: chrome
-          spec: cypress/e2e/logindistribucion/login-invalid-password.cy.js
-          config-file: cypress.config.js
-
-      - name: Run Invalid User Test
-        id: invalid-user
-        continue-on-error: true
-        uses: cypress-io/github-action@v6
-        with:
-          browser: chrome
-          spec: cypress/e2e/logindistribucion/login-invalid-user.cy.js
-          config-file: cypress.config.js
-
-      - name: Run Success Test
-        id: success
-        continue-on-error: true
-        uses: cypress-io/github-action@v6
-        with:
-          browser: chrome
-          spec: cypress/e2e/logindistribucion/login-success.cy.js
+          spec: 'cypress/e2e/logindistribucion/*.cy.js'
           config-file: cypress.config.js
 
       - name: Report Test Results
@@ -50,9 +32,8 @@ jobs:
         run: |
           echo "Test Results Summary:"
           echo "===================="
-          echo "Login Invalid Password Test: ${{ steps.invalid-password.outcome }}"
-          echo "Login Invalid User Test: ${{ steps.invalid-user.outcome }}"
-          echo "Login Success Test: ${{ steps.success.outcome }}"
+          RESULTS=$(cat cypress/results.json 2>/dev/null || echo '{}')
+          echo "$RESULTS" | jq -r '.results[] | "Test: \(.title) - Status: \(if .state == "passed" then "OK" else "failure" end)"' || echo "No results found"
           echo "===================="
           
       - name: Upload Screenshots
@@ -72,9 +53,7 @@ jobs:
       - name: Set final status
         if: always()
         run: |
-          if [[ "${{ steps.invalid-password.outcome }}" == "failure" || 
-                "${{ steps.invalid-user.outcome }}" == "failure" || 
-                "${{ steps.success.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.cypress-tests.outcome }}" == "failure" ]]; then
             echo "Some tests failed"
             exit 1
           else

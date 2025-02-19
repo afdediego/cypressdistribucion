@@ -9,6 +9,10 @@ module.exports = defineConfig({
     viewportHeight: 720,
     video: true,
     screenshotOnRunFailure: true,
+    reporter: 'json',
+    reporterOptions: {
+      outputFile: 'cypress/results.json'
+    },
     experimentalRunAllSpecs: true,
     testIsolation: false,
     setupNodeEvents(on, config) {
