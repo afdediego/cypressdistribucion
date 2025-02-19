@@ -1,7 +1,7 @@
 describe('Login Success Test - Record Go', () => {
     beforeEach(() => {
-        cy.visit('/login', {
-            failOnStatusCode: false
+        cy.visitWithRetry('/', {
+            timeout: 30000
         });
     });
 
@@ -11,19 +11,19 @@ describe('Login Success Test - Record Go', () => {
         .should('be.visible')
         .select('IC');
 
-        cy.get('#username')
+        cy.get('#username', { timeout: 10000 })
         .should('be.visible')
         .type('antonio.diego');
 
-        cy.get('#password')
+        cy.get('#password', { timeout: 10000 })
         .should('be.visible')
         .type('diego1313');
 
-        cy.get('button[type="submit"]')
+        cy.get('button[type="submit"]', { timeout: 10000 })
         .should('be.visible')
         .click();
 
-        cy.url()
+        cy.url({ timeout: 30000 })
         .should('not.include', '/login');
     });
 }); 

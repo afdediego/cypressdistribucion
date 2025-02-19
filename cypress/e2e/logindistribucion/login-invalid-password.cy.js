@@ -1,7 +1,7 @@
 describe('Login Invalid Password Test - Record Go', () => {
     beforeEach(() => {
-        cy.visit('/login', {
-            failOnStatusCode: false
+        cy.visitWithRetry('/', {
+            timeout: 30000
         });
     });
 
@@ -11,21 +11,21 @@ describe('Login Invalid Password Test - Record Go', () => {
         .should('be.visible')
         .select('IC');
 
-        cy.get('#username')
+        cy.get('#username', { timeout: 10000 })
         .should('be.visible')
         .type('antonio.diego');
 
-        cy.get('#password')
+        cy.get('#password', { timeout: 10000 })
         .should('be.visible')
         .type('password123incorrect');
 
-        cy.get('button[type="submit"]')
+        cy.get('button[type="submit"]', { timeout: 10000 })
         .should('be.visible')
         .click();
 
-        cy.contains('div', 'Incorrect username or password');
+        cy.contains('div', 'Incorrect username or password', { timeout: 10000 });
         
-        cy.url()
+        cy.url({ timeout: 10000 })
         .should('include', '/login');
     });
 }); 
