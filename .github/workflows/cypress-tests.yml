@@ -30,11 +30,23 @@ jobs:
       - name: Report Test Results
         if: always()
         run: |
-          echo "Test Results Summary:"
-          echo "===================="
+          echo "🧪 Test Results Summary:"
+          echo "======================="
+          echo "Tests Executed:"
+          echo "- Login Invalid Password Test"
+          echo "- Login Invalid User Test"
+          echo "- Login Success Test"
+          echo ""
+          echo "Results:"
           RESULTS=$(cat cypress/results.json 2>/dev/null || echo '{}')
-          echo "$RESULTS" | jq -r '.results[] | "Test: \(.title) - Status: \(if .state == "passed" then "OK" else "failure" end)"' || echo "No results found"
-          echo "===================="
+          echo "$RESULTS" | jq -r '.results[] | "- \(.title): \(if .state == "passed" then "✅ PASSED" else "❌ FAILED" end) \(if .error then "- Error: \(.error.message)" else "" end)"' || echo "No results found"
+          echo ""
+          echo "Details:"
+          echo "- Total Tests: $(echo "$RESULTS" | jq '.stats.tests // 0')"
+          echo "- Passed: $(echo "$RESULTS" | jq '.stats.passes // 0')"
+          echo "- Failed: $(echo "$RESULTS" | jq '.stats.failures // 0')"
+          echo "- Skipped: $(echo "$RESULTS" | jq '.stats.skipped // 0')"
+          echo "======================="
           
       - name: Upload Screenshots
         uses: actions/upload-artifact@v4
@@ -54,9 +66,10 @@ jobs:
         if: always()
         run: |
           if [[ "${{ steps.cypress-tests.outcome }}" == "failure" ]]; then
-            echo "Some tests failed"
+            echo "❌ Some tests failed or were skipped"
+            echo "Check the detailed report above for more information"
             exit 1
           else
-            echo "All tests passed"
+            echo "✅ All tests completed successfully"
             exit 0
           fi 
