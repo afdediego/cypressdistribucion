@@ -20,4 +20,20 @@ Cypress.Commands.add('getInputByLabel', (label) => {
                     .find('input');
             }
         });
+});
+
+// Comando personalizado para manejar timeouts y reintentos
+Cypress.Commands.add('visitWithRetry', (url, options = {}) => {
+    const defaultOptions = {
+        timeout: 120000,
+        retryOnStatusCodeFailure: true,
+        failOnStatusCode: true
+    };
+    
+    return cy.visit(url, { ...defaultOptions, ...options })
+        .then(() => {
+            return new Cypress.Promise((resolve) => {
+                setTimeout(resolve, 1000); // Pequeña pausa para estabilidad
+            });
+        });
 }); 
