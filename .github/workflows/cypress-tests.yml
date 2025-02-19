@@ -20,12 +20,13 @@ jobs:
 
       - name: Run All Tests
         id: cypress-tests
-        continue-on-error: true
         uses: cypress-io/github-action@v6
         with:
           browser: chrome
           spec: 'cypress/e2e/logindistribucion/*.cy.js'
           config-file: cypress.config.js
+          record: false
+          parallel: false
 
       - name: Report Test Results
         if: always()
@@ -33,60 +34,23 @@ jobs:
           echo "🧪 Test Results Summary:"
           echo "======================="
           echo "Tests Executed:"
-          
-          # Verificar el estado de cada test individualmente
-          if [ -f "cypress/results.json" ]; then
-            # Login Invalid Password Test
-            if grep -q "Login Invalid Password Test.*failed" cypress/results.json; then
-              echo "- Login Invalid Password Test ❌ FAILED"
-            else
-              echo "- Login Invalid Password Test ✅ PASSED"
-            fi
-            
-            # Login Invalid User Test
-            if grep -q "Login Invalid User Test.*failed" cypress/results.json; then
-              echo "- Login Invalid User Test ❌ FAILED"
-            else
-              echo "- Login Invalid User Test ✅ PASSED"
-            fi
-            
-            # Login Success Test
-            if grep -q "Login Success Test.*failed" cypress/results.json; then
-              echo "- Login Success Test ❌ FAILED"
-            else
-              echo "- Login Success Test ✅ PASSED"
-            fi
-          else
-            echo "- Login Invalid Password Test ❌ FAILED (No results file)"
-            echo "- Login Invalid User Test ❌ FAILED (No results file)"
-            echo "- Login Success Test ❌ FAILED (No results file)"
-          fi
-          
-          echo ""
-          echo "Results Details:"
-          if [ -f "cypress/results.json" ]; then
-            cat cypress/results.json | jq -r '
-              if . then
-                "Total Tests: " + (.stats.tests | tostring) + "\n" +
-                "Passed: " + (.stats.passes | tostring) + "\n" +
-                "Failed: " + (.stats.failures | tostring) + "\n" +
-                "Skipped: " + (.stats.pending | tostring)
+          for file in cypress/e2e/logindistribucion/*.cy.js; do
+            testname=$(basename "$file" .cy.js)
+            if [ -f "cypress/results/$testname.json" ]; then
+              result=$(cat "cypress/results/$testname.json")
+              if echo "$result" | grep -q '"state": "failed"'; then
+                echo "❌ $testname: FAILED"
               else
-                "No valid results found"
-              end
-            ' || echo "Error parsing results"
-          else
-            echo "No results file found"
-            echo "Total Tests: 3"
-            echo "Failed: 3"
-            echo "Passed: 0"
-            echo "Skipped: 0"
-          fi
-          echo "======================="
-
+                echo "✅ $testname: PASSED"
+              fi
+            else
+              echo "⚠️ $testname: NO RESULTS"
+            fi
+          done
+          
       - name: Upload Screenshots
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: cypress-screenshots
           path: cypress/screenshots
@@ -101,11 +65,15 @@ jobs:
       - name: Set final status
         if: always()
         run: |
-          if [[ "${{ steps.cypress-tests.outcome }}" == "failure" ]]; then
-            echo "❌ Some tests failed or were skipped"
-            echo "Check the detailed report above for more information"
-            exit 1
+          if [ -d "cypress/results" ] && [ "$(find cypress/results -name '*.json' | wc -l)" -gt 0 ]; then
+            if grep -r '"state": "failed"' cypress/results; then
+              echo "❌ Some tests failed"
+              exit 1
+            else
+              echo "✅ All tests passed"
+              exit 0
+            fi
           else
-            echo "✅ All tests completed successfully"
-            exit 0
+            echo "❌ No test results found"
+            exit 1
           fi 
