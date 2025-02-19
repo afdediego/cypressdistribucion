@@ -1,8 +1,12 @@
 {
+  "name": "cypressdistribucion",
+  "version": "1.0.0",
+  "description": "Cypress tests for distribution login",
   "scripts": {
     "cy:open": "cypress open",
     "cy:run": "cypress run",
-    "test:login": "cypress run --spec 'cypress/e2e/logindistribucion/*.cy.js'"
+    "test:login": "cypress run --spec 'cypress/e2e/logindistribucion/*.cy.js'",
+    "test:ci": "cypress run --browser chrome --spec 'cypress/e2e/logindistribucion/*.cy.js'"
   },
   "devDependencies": {
     "cypress": "^14.0.3"

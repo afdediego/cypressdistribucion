@@ -13,9 +13,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Cypress run
-        uses: cypress-io/github-action@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
         with:
-          build: npm run build
-          start: npm start
-          wait-on: 'http://localhost:3000' 
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Cypress Tests
+        uses: cypress-io/github-action@v6
+        with:
+          browser: chrome
+          spec: cypress/e2e/logindistribucion/*.cy.js
+          config-file: cypress.config.js
+        env:
+          CYPRESS_BASE_URL: 'https://pre-logistics.recordgo.cloud'
+          
+      - name: Upload Screenshots
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          
+      - name: Upload Videos
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: cypress-videos
+          path: cypress/videos 
